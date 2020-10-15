@@ -10,8 +10,12 @@
 CHIP FullAdder {
     IN a, b, c;  // 1-bit inputs
     OUT sum,     // Right bit of a + b + c
-        carry;   // Left bit of a + b + c
+        carry;   // Left bit of a + b + cc
 
-    PARTS:
+    PARTS://                               a and b
+        HalfAdder(a=a, b=b, sum=Sum, carry=ab);
+        HalfAdder(a=Sum, b=c, sum=sum, carry=car);
+        Or(a=car, b=ab, out=carry);
+
     // Put you code here:
 }
