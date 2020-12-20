@@ -39,22 +39,100 @@ CHIP CPU {
         pc[15];          // address of next instruction
 
     PARTS:
-    Mux16(a=instruction, b=ALU_out, sel=instruction[15], out=A_C);
-    Register(in=A_C, load=instruction[5], out=A_reg, out[0..14]=addressM);
-    Mux16(a=inM, b=A_reg, sel=instruction[12], out=A_M);, 
-    Register(in=ALU_out, load=instruction[4], out=D_reg);
-    ALU(x=D_reg, y=A_M, zx=instruction[11], nx=instruction[10], zy=instruction[9], ny=instruction[8], f=instruction[7], no=instruction[6], out=outM, out=ALU_out, zr=zr, ng=ng);
-    And(a=instruction[15], b=instruction[3], out=writeM);
+    // Or16(a=false, b=instruction, out[15]=isC, out[12]=a, out[11]=c1, out[10]=c2, out[9]=c3, out[8]=c4, out[7]=c5, out[6]=c6, out[5]=d1, out[4]=d2, out[3]=d3, out[2]=j1, out[1]=j2, out[0]=j3);
+    
+    // Mux16(a=ALUout, b=instruction, out=A_C);
+    // Not(in=isC, out=nisc);
+    // Or(a=nisc, b=d1, out=a_save);
+    // ARegister(in=A_C, load=a_save, out=A_reg, out[0..14]=addressM);
 
-    And(a=ng, b=instruction[2], out=JLT);
-    And(a=zr, b=instruction[1], out=JEQ);
-    And(a=JLT, b=JEQ, out=J_LE);
-    Or(a=JLT, b=JEQ, out=GT);
+    // Mux16(a=inM, b=A_reg, sel=a, out=A_M);, 
 
-    Not(in=GT, out=JGT);
-    Or(a=J_LE, b=JGT, out=jump);
-    And(a=instruction[15], b=jump, out=PC_LOAD);
+    // And(a=d2, b=isc, out=d_save);
+    // Register(in=outM, load=d_save, out=D_reg);
 
-    PC(in=A_reg, load=PC_LOAD, inc=true, reset=reset, out=pc);
+    // ALU(x=D_reg, y=A_M, zx=c1, nx=c2, zy=c3, ny=c4, f=c5, no=c6, out=outM, out=ALUout, zr=zr, ng=ng);
+    // And(a=isC, b=d3, out=writeM);
+
+    // And(a=ng, b=j1, out=JLT);
+    // And(a=zr, b=j2, out=JEQ);
+    // And(a=JLT, b=JEQ, out=J_LE);
+    // Or(a=JLT, b=JEQ, out=GT);
+
+    // Not(in=GT, out=JGT);
+    // Or(a=J_LE, b=JGT, out=jump);
+    // And(a=isC, b=jump, out=PC_LOAD);
+
+    // PC(in=A_reg, load=PC_LOAD, inc=true, reset=reset, out=pc);
+
+    // Not(in=instruction[15],out=ni);
+	// Mux16(a=outtM,b=instruction,sel=ni,out=i);
+
+	// Or(a=ni,b=instruction[5],out=intoA);
+	// ARegister(in=i,load=intoA,out=A,out[0..14]=addressM);
+
+	// And(a=instruction[15],b=instruction[12],out=AorM);
+	// Mux16(a=A,b=inM,sel=AorM,out=AM);
+	
+	// ALU(x=D,y=AM,zx=instruction[11],nx=instruction[10],zy=instruction[9],ny=instruction[8],f=instruction[7],no=instruction[6],out=outtM,out=outM,zr=zr,ng=ng);
+
+	// And(a=instruction[15],b=instruction[4],out=intoD);
+	// DRegister(in=outtM,load=intoD,out=D);
+
+	// And(a=instruction[15],b=instruction[3],out=writeM);
+
+	// Not(in=ng,out=pos);
+	// Not(in=zr,out=nzr);
+	// And(a=instruction[15],b=instruction[0],out=jgt);
+	// And(a=pos,b=nzr,out=posnzr);
+	// And(a=jgt,b=posnzr,out=ld1);
+
+	// And(a=instruction[15],b=instruction[1],out=jeq);
+	// And(a=jeq,b=zr,out=ld2);
+
+	// And(a=instruction[15],b=instruction[2],out=jlt);
+	// And(a=jlt,b=ng,out=ld3);
+
+	// Or(a=ld1,b=ld2,out=ldt);
+	// Or(a=ld3,b=ldt,out=ld);
+
+	// PC(in=A,load=ld,inc=true,reset=reset,out[0..14]=pc);
+    Or16(a=false, b=instruction, out[15]=isC, out[12]=a, out[11]=c1, out[10]=c2, out[9]=c3, out[8]=c4, out[7]=c5, out[6]=c6, out[5]=d1, out[4]=d2, out[3]=d3, out[2]=j1, out[1]=j2, out[0]=j3);
+
+    //Mux16-1
+    Mux16(a=instruction, b=ALUout, out=Mux16out1);
+
+    //A register
+    Not(in=isC, out=isA);
+    And(a=isC, b=d1, out=isCd1);
+    or(a=isA, b=isCd1, out=Aload);
+    ARegister(in=Mux16out1, load=Aload, out=Aout, out[0..14]=addressM);
+    
+    //Mux16-2
+    Mux16(a=Aout, b=inM, sel=isC, out=Mux16out2);
+
+    //D register
+    And(a=isC, b=d2, out=isCd2);
+    DRegister(in=ALUout, load=isCd2, out=Dout);
+
+    //ALU
+    ALU(a=Dout, b=Mux16out2,zx=c1, nx=c2, zy=c3, ny=c4,f=c5, no=c6, out=outM, zr=zr, ng=ng);
+
+    //Jump
+    And(a=ng, b=j1, out=jumpLT);              //if(out<0)
+    And(a=zr, b=j2, out=jumpEQ);              //if(out=0)
+    Or(a=ng, b=zr, out=ngzr);
+    Not(in=ngzr, out=gt);
+    And(a=gt, b=j3, out=jumpGT);              //if(out>0)
+
+    Or(a=jumpLT, b=jumpEQ, out=jumpLE);
+    Or(a=jumpLE, b=jumpGT, out=jump);
+
+    //PC
+    And(a=isC, b=jump, out=PCload);
+    PC(in=Aout, load=PCload, reset=reset, inc=true, out[0..14]=pc);  //不是reset或是load就是inc要加一 inc就是位址的意思
+
+    //writeM
+    And(a=isC, b=d3, out=writeM)
     // Put your code here:
 }
