@@ -39,44 +39,52 @@ CHIP CPU {
         pc[15];          // address of next instruction
 
     PARTS:
-    // D=A
-                                //    1    11      0          1           1          0          0          0          0          0          1          0          0          0          0
     Or16(a=false, b=instruction, out[15]=isC, out[12]=a, out[11]=c1, out[10]=c2, out[9]=c3, out[8]=c4, out[7]=c5, out[6]=c6, out[5]=d1, out[4]=d2, out[3]=d3, out[2]=j1, out[1]=j2, out[0]=j3);
     Mux16(a=instruction, b=ALUout, sel =isC, out=AC);
+
     // [15] = 0 : isA
         //  = 1 : isC
     // 如果是C指令 15位為1
     //       A指令     為0
     Not(in=isC, out=isA);
     And(a=isC, b=d1, out=Cd1);
+
+    //15位為0 或 C指令+d1為1 
     Or(a=isA, b=Cd1, out=asave);
-    //15位為0 或 C指令+d1 為1 
+
     ARegister(in=AC, load=asave, out=Areg, out[0..14]=addressM);
+
     //要選A還是M，12位為0是A
     //               為1是M
     Mux16(a=Areg, b=inM, sel=a, out=AM);
+
     //C指令 + 4位為1
     And(a=d2, b=isC, out=dsave);
     DRegister(in=ALUout, load=dsave, out=Dreg);
 
 
     ALU(x=Dreg, y=AM, zx=c1, nx=c2, zy=c3, ny=c4, f=c5, no=c6, out=ALUout, out=outM, zr=zr, ng=ng);
+
     //是否要寫入M
     And(a=isC, b=d3, out=writeM);
 
     //如果out < 0且d1為1 JLT=1
     And(a=ng, b=j1, out=JLT);
+
     //如果out = 0且j2為1 JEQ=1
     And(a=zr, b=j2, out=JEQ);
+
     //如果zr或ng為1，代表out不大於0
     Or(a=zr, b=ng, out=ZN);
     Not(in=ZN, out=nZN);
+
     //如果out > 1且j3為1 JGT=1
     And(a=nZN, b=j3, out=JGT);
 
     //確認是三種jump之一
     Or(a=JLT, b=JEQ, out=JLE);
     Or(a=JLE, b=JGT, out=jump);
+
     //當然，他還要是C指令
     And(a=isC, b=jump, out=PCload);
 
