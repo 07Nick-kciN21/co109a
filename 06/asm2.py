@@ -1,7 +1,6 @@
-import numpy as np
 import re
 import os
-
+# 有符號版
 dest = {"":"000","M":"001","D":"010",
         "MD":"011","A":"100","AM":"101",
         "AD":"110","AMD":"111"}
@@ -93,7 +92,6 @@ def pass2(Filename):
                     binum = bin(num)
                     ins = binum[2:].zfill(16)
                     # print('{}:{:<20}{:>20}'.format(str(address).zfill(2), i ,ins))
-                    address += 1
                 # 如果是C指令
                 else:
                     D = False

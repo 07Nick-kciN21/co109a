@@ -1,9 +1,6 @@
 import re
 import os
-
-
-
-# 無符號版
+# 沒符號版
 dest = {"":"000","M":"001","D":"010",
         "MD":"011","A":"100","AM":"101",
         "AD":"110","AMD":"111"}
@@ -27,46 +24,76 @@ symb = {"R0":0,"R1":1,"R2":2,"R3":3,"R4":4,"R5":5,"R6":6,"R7":7,
         "R14":14,"R15":15,"SCREEN":16384, "KBD":24576, "SP":0, 
         "LCL":0, "ARG":2, "THIS":3, "THAT":4 }
 
+
 # 轉換成二進位再補充0到16位
 def put0(binum):
     binum = '0'*(16-len(binum)) + binum
     return binum
 
-def bin_hex(bin):
-    return hex(bin)
-
 def pass1(Filename):
     print("============= PASS1 ================")
-    inFile = open(Filename+'.asm','r')
+    inFile = open(Filename + '.asm','r')
+    x = 16
     address = 0
+    lab2 = re.compile(r'[\w\W]+[^\)]')
+    lab3 = re.compile(r'[\D][\w\W]*')
     for i in inFile:
         if(i.startswith("//") != True and i.startswith("\n") != True):
             i = i.replace('\n','')
-            print('{:>3}:{}'.format(str(address).zfill(2),i))
-            address += 1
+            i = i.replace(' ','')
+            i = i.split('//')[0]#去掉註解
+            print('{}:{}'.format(str(address).zfill(2),i))
+            if(i[0] == '@'):
+                # 取得符號字串，不要數字開頭
+                label3 = lab3.match(i[1:])
+                if(label3 != None):
+                    label4 = label3.group()
+                    symb.setdefault(label4, x)#如果字典沒有，放入字典
+                    x += 1
+                address += 1
+            else:
+                address += 1
+    inFile.close()
+    # print(symb)
 
 def pass2(Filename):
     print("============= PASS2 ================")
     inFile = open(Filename+'.asm','r')
     hackFile = open(Filename+'.hack','w')
-    binFile = open(Filename+'.bin','w')
+    binFile = open(Filename+'.bin','wb')
     ins = ''
     address=0
+    at1 = re.compile(r'[\D][\w\W]*')# @i
+    # at2 = re.compile(r'[^@][\d]')# @12
     for i in inFile:
-        if(i.startswith("//") != True and i.startswith("\n") != True):# 過濾掉註解和換行字元
-            i = i.replace('\n','')# 去掉換行字元
-            if(i[0] == '@'):# 如果是A指令
-                num = eval(i[1:])# 取得@後字元
+        # 過濾掉註解和換行字元
+        if(i.startswith("//") != True and i.startswith("\n") != True):
+            # 去掉換行字元和空白
+            i = i.replace('\n','')
+            i = i.replace(' ','')
+            i = i.split('//')[0]
+                # 如果是A指令
+            if(i[0] == '@'):
+                # 取得@後字元
+                if(at1.match(i[1:]) != None):#是否為符號
+                    num = symb[at1.match(i[1:]).group()]
+                else:#是否為數字
+                    num = eval(i[1:])# 取得@後字元
                 binum = bin(num)
                 ins = binum[2:].zfill(16)
-            else:# 如果是C指令
+                # print('{}:{:<20}{:>20}'.format(str(address).zfill(2), i ,ins))
+            # 如果是C指令
+            else:
                 D = False
                 J = False
-                ins1 = i.replace(";","=")# 把指令切割
+                # 把指令切割
+                ins1 = i.replace(";","=")
                 ins1 = ins1.split('=')
-                if(i.find(';') != -1):# 如果有;代表有jump指令
+                # 如果有;代表有jump指令
+                if(i.find(';') != -1):
                     J = True
-                if(i.find('=') != -1):# 如果有=代表有dest指令
+                # 如果有=代表有dest指令
+                if(i.find('=') != -1):
                     D = True
                 if(J and D):
                     Dest = dest[ins1[0]]
@@ -81,14 +108,19 @@ def pass2(Filename):
                     Comp = comp[ins1[1]]
                     Jump = "000"
                 ins = "111"+Comp+Dest+Jump
-            hexcode = hex(int(ins,2))
-            hexcode2 = hexcode[2:].zfill(4)
-            print("{:>3}:{:<15}{:>20}  {}".format(str(address).zfill(2), i, ins, hexcode2))
-            binFile.write(hexcode2+'\n')    
+                # print("{}:{:<20}{:>20}".format(str(address).zfill(2), i, ins))
+            bincode = int(ins,2)#轉換成2進位數字
+            hexcode = hex(bincode)#轉換成16進位
+            int_bytes = bincode.to_bytes(2, 'big')#轉換成bin檔可讀入的格式
+            print("{}:{:<15}{:>20}  {}".format(str(address).zfill(2), i, ins, hexcode[2:].zfill(4)))
+            binFile.write(int_bytes)
             hackFile.write(ins+'\n')
             address += 1
+    inFile.close()
     hackFile.close()
+    binFile.close()
                 
+
 
 def main():
     Filename = input()
@@ -96,3 +128,4 @@ def main():
     pass2(Filename)
 
 main()
+
