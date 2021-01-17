@@ -14,7 +14,7 @@
 | 第九週 | https://github.com/07Nick-kciN21/co109a/blob/master/Homework/08.md |  |
 | 第十週 | https://github.com/07Nick-kciN21/co109a/blob/master/Homework/09.md |  |
 | 第11週 | https://github.com/07Nick-kciN21/co109a/blob/master/Homework/10.md |  |
-| 第12週 | https://github.com/07Nick-kciN21/co109a/blob/master/Homework/11.md | 嘔心瀝血之作(附程式註解) |
+| 第12週 | https://github.com/07Nick-kciN21/co109a/blob/master/Homework/11.md | 嘔心瀝血之作 |
 | 第13週 | https://github.com/07Nick-kciN21/co109a/blob/master/Homework/12.md |  |
-| 第14週 | https://github.com/07Nick-kciN21/co109a/blob/master/Homework/13.md |  |
-| 第15週 | https://github.com/07Nick-kciN21/co109a/blob/master/Homework/13.md |  |
+| 第14週 | https://github.com/07Nick-kciN21/co109a/blob/master/Homework/13.md | 百分百純手工純手工 |
+| 第15週 | https://github.com/07Nick-kciN21/co109a/blob/master/Homework/14.md | 同上 |
